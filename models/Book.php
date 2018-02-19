@@ -31,40 +31,50 @@ class Book
         $this->description = $description;
         $this->netto = $netto;
         $this->brutto = $this->setBrutto($netto);
-        $this->language = $this->setLanguage($language);
-        $this->series = $this->setSeries($series);
+        $this->language = $this->setLanguage(trim($language));
+        $this->series = $this->setSeries(trim($series));
         $this->code = $code;
+        $this->checkSummEAN($this->ean);
     }
 
     protected function setBrutto($netto)
     {
         return round($netto*1.1);
     }
+
     protected function setIsbn($isbn)
     {
         return preg_replace('/[^\d-]/','',$isbn);
     }
+
     protected function setEan($isbn)
     {
-        $ean = preg_replace('/[^\d]/','',$isbn);
+        return preg_replace('/[^\d]/','',$isbn);;
+    }
+
+    protected function checkSummEAN($ean)
+    {
         $check = 3*($ean[1] + $ean[3] + $ean[5] + $ean[7] + $ean[9] + $ean[11]) + $ean[0] + $ean[2] + $ean[4] + $ean[6] + $ean[8] + $ean[10];
         $check = $check % 10;
         if ($check != 0) $check = 10 - $check;
-        if ($ean[12] != $check)
+        if ($this->ean[12] != $check)
         {
-            $ean[12] = $check;
+            $this->ean[12] = $check;
             $this->isbn = substr_replace($this->isbn, $check , -1 , 1);
         }
-        return $ean;
+        return $check;
     }
+
     protected function setLanguage($language)
     {
-        return $language;
+        return Language::getLanguageId($language);
     }
+
     protected function setSeries($series)
     {
-        return $series;
+        return Series::getSeriesId($series);
     }
+    
     static public function getBookList()
     {
         $db = Db::getConnection();
@@ -81,8 +91,8 @@ class Book
             $bookList[$i]['description'] = $row['description'];
             $bookList[$i]['netto'] = $row['netto'];
             $bookList[$i]['brutto'] = $row['brutto'];
-            $bookList[$i]['language'] = $row['language'];
-            $bookList[$i]['series'] = $row['series'];
+            $bookList[$i]['language'] = Language::getLanguageById($row['language'])['name'];
+            $bookList[$i]['series'] = Series::getSeriesById($row['series'])['name'];
             $bookList[$i]['code'] = $row['code'];
             $i++;
         }

@@ -19,16 +19,9 @@ class BookController extends SiteController
             $file = $_FILES['importfile']['tmp_name'];
             $xml = new ReadXML($file);
             $xml_file = $xml->getBooksFromFile();
-            //$xml_file = new SimpleXMLElement(file_get_contents($file));
-            //$xml_file = $xml_file->book[0]->param;
-            $ans = '';
-            /*foreach ($xml_file as $name)
-            {
-                $ans .= (string) $name['name'] . ' = '.$name . '; ';
-            }*/
-            //$ans = $xml_file;
+            $ans = $xml->report;
         }
-        else {$ans = true;}
+        else {$ans = true; $xml_file = '';}
         $this->setTitle('Добавить файл данных');
         return $this->render('books/add_file', ['ans' => $ans, 'xml_file' => $xml_file]);
     }

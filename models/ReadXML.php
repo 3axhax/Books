@@ -6,6 +6,7 @@ use SimpleXMLElement;
 class ReadXML
 {
     public $filePath;
+    public $report = true;
     
     public function __construct($filePath)
     {
@@ -13,7 +14,15 @@ class ReadXML
     }
     public function getBooksFromFile()
     {
-        $xml_file = new SimpleXMLElement(file_get_contents($this->filePath));
+        libxml_use_internal_errors(true);
+        try {
+            $xml_file = new SimpleXMLElement(file_get_contents($this->filePath));
+        }
+        catch (\Exception $e)
+        {
+            $this->report = 'Ошибка загрузки файла: '.$e->getMessage();
+            return false;
+        }
         $books = array();
         foreach ($xml_file->book as $book)
         {
