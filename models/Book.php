@@ -31,8 +31,8 @@ class Book
         $this->description = $description;
         $this->netto = $netto;
         $this->brutto = $this->setBrutto($netto);
-        $this->language = $language;
-        $this->series = $series;
+        $this->language = $this->setLanguage($language);
+        $this->series = $this->setSeries($series);
         $this->code = $code;
     }
 
@@ -57,7 +57,14 @@ class Book
         }
         return $ean;
     }
-
+    protected function setLanguage($language)
+    {
+        return $language;
+    }
+    protected function setSeries($series)
+    {
+        return $series;
+    }
     static public function getBookList()
     {
         $db = Db::getConnection();
