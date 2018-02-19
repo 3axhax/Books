@@ -1,5 +1,6 @@
 <?php
 
+use components\Report;
 use models\Book;
 use models\ReadXML;
 use controllers\SiteController;
@@ -18,11 +19,11 @@ class BookController extends SiteController
         {
             $file = $_FILES['importfile']['tmp_name'];
             $xml = new ReadXML($file);
-            $xml_file = $xml->getBooksFromFile();
-            $ans = $xml->report;
+            $xml->getBooksFromFile();
+            $ans = Report::instance()->getReportMessage();
         }
         else {$ans = true; $xml_file = '';}
         $this->setTitle('Добавить файл данных');
-        return $this->render('books/add_file', ['ans' => $ans, 'xml_file' => $xml_file]);
+        return $this->render('books/add_file', ['ans' => $ans]);
     }
 }

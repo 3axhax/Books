@@ -1,12 +1,13 @@
 <?php
 
 namespace models;
+use components\Report;
 use SimpleXMLElement;
 
 class ReadXML
 {
     public $filePath;
-    public $report = true;
+    public $report = null;
     
     public function __construct($filePath)
     {
@@ -20,7 +21,9 @@ class ReadXML
         }
         catch (\Exception $e)
         {
-            $this->report = 'Ошибка загрузки файла: '.$e->getMessage();
+            $rep = Report::instance();
+            $rep->addCountError();
+            $rep->addErrorMessage('Ошибка загрузки файла: '.$e->getMessage());
             return false;
         }
         $books = array();

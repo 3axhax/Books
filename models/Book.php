@@ -4,6 +4,7 @@ namespace models;
 
 use components\Db;
 use PDO;
+use components\Report;
 
 class Book
 {
@@ -31,10 +32,11 @@ class Book
         $this->description = $description;
         $this->netto = $netto;
         $this->brutto = $this->setBrutto($netto);
-        $this->language = $this->setLanguage(trim($language));
-        $this->series = $this->setSeries(trim($series));
+        $this->language = (int) $this->setLanguage(trim($language));
+        $this->series = (int) $this->setSeries(trim($series));
         $this->code = $code;
         $this->checkSummEAN($this->ean);
+        $this->checkBookEan($this->ean);
     }
 
     protected function setBrutto($netto)
@@ -74,7 +76,77 @@ class Book
     {
         return Series::getSeriesId($series);
     }
-    
+
+    protected function getBookByEan($ean)
+    {
+        $db = Db::getConnection();
+        $sql = 'SELECT * FROM '. self::tableName() .' WHERE ean = \''.$ean.'\'';
+        $result = $db->query($sql);
+
+        if (!$result) return false;
+        return $result->fetch(PDO::FETCH_ASSOC);
+    }
+
+    protected function updateBook($book)
+    {
+        $dif = array_diff_assoc((array) $this, $book);
+        array_shift($dif);
+        if ($dif)
+        {
+            $db = Db::getConnection();
+            $sql = 'UPDATE `' . self::tableName() . '` SET ';
+            foreach ($dif as $key => $value)
+            {
+                $sql .= '`'.$key.'` = \''.$value.'\', ';
+            }
+            $sql = substr_replace($sql, '', -2, 2);
+            $sql .= ' WHERE `' . self::tableName() . '`.`ean` = \'' . $this->ean . '\'';
+            $db->query($sql);
+            $rep = Report::instance();
+            $rep->addCountUpdate();
+        }
+    }
+
+    protected function addBook()
+    {
+        if ($this->validateBook())
+        {
+            $db = Db::getConnection();
+            $sql = 'INSERT INTO `' . self::tableName() . '` (';
+            $sql_values = 'VALUES (';
+            foreach ((array)$this as $key => $value) {
+                $sql .= '`' . $key . '`, ';
+                $sql_values .= '\'' . $value . '\', ';
+            }
+            $sql = substr_replace($sql, '', -2, 2);
+            $sql_values = substr_replace($sql_values, '', -2, 2);
+            $sql .= ') ';
+            $sql_values .= ')';
+            $sql .= $sql_values;
+            $db->query($sql);
+            $rep = Report::instance();
+            $rep->addCountAdd();
+        }
+        else
+        {
+            $rep = Report::instance();
+            $rep->addCountError();
+            $rep->addErrorMessage('Ошибка: неверный формат данных');
+        }
+    }
+
+    protected function checkBookEan($ean)
+    {
+        if (($book = $this->getBookByEan($ean))) $this->updateBook($book);
+        else $this->addBook();
+    }
+
+    protected function validateBook()
+    {
+        if (count($this->ean) == 13) return true;
+        else return false;
+    }
+
     static public function getBookList()
     {
         $db = Db::getConnection();

@@ -13,12 +13,10 @@
 </form>
 
 <?php if (($ans !== true) && ($ans)) :?>
+    <?php $status = \components\Report::instance()->getCountError()?>
     <br>
-    <div class="alert alert-danger alert-dismissible col-lg-offset-2 col-lg-3" role="alert">
+    <div class="alert alert-<?= ($status != 0) ? 'danger' : 'success'?> alert-dismissible col-lg-offset-2 col-lg-4" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <?=$ans?>
     </div>
 <?php endif;?>
-<pre>
-    <?php print_r($xml_file)?>
-</pre>
